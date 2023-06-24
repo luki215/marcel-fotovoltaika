@@ -1,0 +1,62 @@
+version: "3.9"
+services:
+  grafana:
+    image: grafana/grafana:10.0.0-preview
+    volumes:
+      - ./grafana:/var/lib/grafana:rw
+    ports:
+      - "3000:3000"
+  stats_db:
+    image: mysql:8.0.33
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: stats
+      MYSQL_USER: stats
+      MYSQL_PASSWORD: password
+    command:
+      [
+        mysqld,
+        --character-set-server=utf8mb4,
+        --collation-server=utf8mb4_unicode_ci,
+        --innodb_monitor_enable=all,
+        --max-connections=1001,
+      ]
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - ./dbdata:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    links:
+      - stats_db
+    environment:
+      PMA_HOST: stats_db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8080:80
+
+  sync-watch:
+    build: .
+    container_name: sync
+    working_dir: /usr/src/app
+    command: "yarn ts-node ./src/watch.ts"
+    links:
+      - stats_db
+    restart: always
+  sync-manual:
+    build: .
+    container_name: sync-manual
+    working_dir: /usr/src/app
+    command: "yarn ts-node ./src/sync-manually-web.ts"
+    links:
+      - stats_db
+    restart: always
+    ports:
+      - 3001:3001
