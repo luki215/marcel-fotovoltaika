@@ -47,6 +47,8 @@ services:
     container_name: sync
     working_dir: /usr/src/app
     command: "yarn ts-node ./src/watch.ts"
+    volumes: 
+      - "./src:/usr/src/app/src"
     links:
       - stats_db
     restart: always
@@ -55,6 +57,8 @@ services:
     container_name: sync-manual
     working_dir: /usr/src/app
     command: "yarn ts-node ./src/sync-manually-web.ts"
+    volumes: 
+      - "./src:/usr/src/app/src"
     links:
       - stats_db
     restart: always
