@@ -2,6 +2,7 @@ version: "3.9"
 services:
   grafana:
     image: grafana/grafana:10.0.1
+    restart: always
     volumes:
       - ./grafana:/var/lib/grafana:rw
     ports:
@@ -13,6 +14,7 @@ services:
       MYSQL_DATABASE: stats
       MYSQL_USER: stats
       MYSQL_PASSWORD: password
+    restart: always
     command:
       [
         mysqld,
